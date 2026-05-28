@@ -7,8 +7,8 @@ The application features full secure JWT User Authentication, live word/characte
 ---
 
 ## Live Deployment URLs
-- **Frontend (Vercel):** *[Your Live Frontend URL Here]*
-- **Backend (Railway/Render):** *[Your Live Backend URL Here]*
+- **Frontend (Vercel):** https://frontend-five-self-57.vercel.app
+- **Backend (Railway/Render):** https://ai-writing-assistant-01sf.onrender.com
 
 ---
 
