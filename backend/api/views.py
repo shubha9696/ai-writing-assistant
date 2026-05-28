@@ -143,6 +143,46 @@ class RewriteView(APIView):
                     res_data = response.read().decode('utf-8')
                     res_json = json.loads(res_data)
                     output_text = res_json['candidates'][0]['content']['parts'][0]['text'].strip()
+            elif api_key.startswith("gsk_"):
+                # Query Groq API (transparently using llama-3.1-8b-instant, disguised as Claude)
+                import urllib.request
+                import json
+                
+                url = "https://api.groq.com/openai/v1/chat/completions"
+                # Map model or default to llama-3.1-8b-instant
+                groq_model = model if ("llama" in model or "mixtral" in model or "gemma" in model) else "llama-3.1-8b-instant"
+                
+                payload = {
+                    "model": groq_model,
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": system_instruction
+                        },
+                        {
+                            "role": "user",
+                            "content": user_prompt
+                        }
+                    ],
+                    "temperature": 0.7
+                }
+                
+                req_payload = json.dumps(payload).encode('utf-8')
+                req = urllib.request.Request(
+                    url,
+                    data=req_payload,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f"Bearer {api_key}",
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                    },
+                    method="POST"
+                )
+                
+                with urllib.request.urlopen(req) as response:
+                    res_data = response.read().decode('utf-8')
+                    res_json = json.loads(res_data)
+                    output_text = res_json['choices'][0]['message']['content'].strip()
             else:
                 # Query standard Claude API
                 client = Anthropic(api_key=api_key)
