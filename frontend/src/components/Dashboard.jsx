@@ -121,7 +121,7 @@ export default function Dashboard({ onLogout }) {
           </div>
           <div>
             <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white to-brand-accent bg-clip-text text-transparent">
-              Antigravity Write
+              Elevate Write
             </span>
             <span className="ml-2 text-xxs bg-brand-accent/10 border border-brand-accent/25 text-brand-accent px-2 py-0.5 rounded-full font-semibold">
               v1.0

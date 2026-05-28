@@ -1,6 +1,6 @@
-# Antigravity Write: AI Writing Assistant & Summarizer
+# Elevate Write: AI Writing Assistant & Summarizer
 
-Antigravity Write is a production-ready, full-stack web application designed to perfect writing with AI-powered revisions. Users can paste text and receive styled, contextual, and optimized rewrites or summaries powered by the **Claude API** (Anthropic). 
+Elevate Write is a production-ready, full-stack web application designed to perfect writing with AI-powered revisions. Users can paste text and receive styled, contextual, and optimized rewrites or summaries powered by the **Claude API** (Anthropic). 
 
 The application features full secure JWT User Authentication, live word/character counters, multiple style adjustments, copy capabilities, and a revision log that allows users to instantly restore any past generation.
 

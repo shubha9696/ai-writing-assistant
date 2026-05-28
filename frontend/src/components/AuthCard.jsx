@@ -61,7 +61,7 @@ export default function AuthCard({ onAuthSuccess }) {
           <Sparkles className="h-8 w-8 text-brand-accent animate-pulse" />
         </div>
         <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-brand-accent bg-clip-text text-transparent">
-          Antigravity Write
+          Elevate Write
         </h1>
         <p className="mt-2 text-sm text-brand-textSecondary">
           AI-Powered Writing Assistant & Summary Engine
