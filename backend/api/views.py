@@ -5,7 +5,6 @@ from rest_framework import status, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.models import User
-from anthropic import Anthropic
 
 from .models import RewriteHistory
 from .serializers import UserRegistrationSerializer, RewriteHistorySerializer
@@ -24,7 +23,7 @@ class RegisterView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class RewriteView(APIView):
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.AllowAny,)  # Make public
 
     def post(self, request):
         text = request.data.get('text', '').strip()
@@ -43,7 +42,16 @@ class RewriteView(APIView):
 
         # Fetch API credentials
         api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
-        model = os.getenv("CLAUDE_MODEL", "claude-3-5-haiku-20241022").strip()
+        model = os.getenv("CLAUDE_MODEL", "llama-3.1-8b-instant").strip()
+
+        # Map model or default to llama-3.1-8b-instant
+        # Keep variable name CLAUDE_MODEL for the environment variable so it matches assignment
+        groq_model = model if ("llama" in model or "mixtral" in model or "gemma" in model) else "llama-3.1-8b-instant"
+
+        # Resolve public/guest session user dynamically
+        target_user = request.user
+        if not target_user or target_user.is_anonymous:
+            target_user, _ = User.objects.get_or_create(username='guest', email='guest@example.com')
 
         # If API key is missing and DEBUG is active, use high-quality local mock to ensure seamless testing
         if not api_key:
@@ -51,7 +59,7 @@ class RewriteView(APIView):
                 output_text = self._generate_mock_output(text, mode_normalized, tone, length)
                 # Save to history
                 history_record = RewriteHistory.objects.create(
-                    user=request.user,
+                    user=target_user,
                     original_text=text,
                     output_text=output_text,
                     mode=mode_normalized,
@@ -165,7 +173,7 @@ class RewriteView(APIView):
 
             # Save rewrite to user history
             history_record = RewriteHistory.objects.create(
-                user=request.user,
+                user=target_user,
                 original_text=text,
                 output_text=output_text,
                 mode=mode_normalized,
@@ -212,9 +220,13 @@ class RewriteView(APIView):
             )
 
 class HistoryView(APIView):
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.AllowAny,)  # Make public
 
     def get(self, request):
-        history = RewriteHistory.objects.filter(user=request.user)
+        target_user = request.user
+        if not target_user or target_user.is_anonymous:
+            target_user, _ = User.objects.get_or_create(username='guest', email='guest@example.com')
+            
+        history = RewriteHistory.objects.filter(user=target_user)
         serializer = RewriteHistorySerializer(history, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

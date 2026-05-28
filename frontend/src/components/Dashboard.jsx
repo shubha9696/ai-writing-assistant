@@ -129,19 +129,10 @@ export default function Dashboard({ onLogout }) {
           </div>
         </div>
 
-        {/* User Session Info */}
-        <div className="flex items-center gap-4">
-          <div className="hidden sm:flex items-center gap-2 bg-brand-card/60 px-3.5 py-1.5 rounded-xl border border-brand-border/40">
-            <User className="h-4 w-4 text-brand-textSecondary" />
-            <span className="text-sm font-medium text-brand-textPrimary">{username}</span>
-          </div>
-          <button
-            onClick={onLogout}
-            className="flex items-center gap-2 hover:bg-red-500/10 text-brand-textSecondary hover:text-red-400 border border-brand-border/40 hover:border-red-500/25 px-3.5 py-1.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer"
-          >
-            <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline">Sign Out</span>
-          </button>
+        <div className="flex items-center gap-2.5">
+          <span className="text-xs font-semibold text-brand-textMuted uppercase tracking-wider">
+            Workspace Mode
+          </span>
         </div>
       </header>
 
