@@ -1,0 +1,1 @@
+web: gunicorn writing_assistant.wsgi --log-file -
