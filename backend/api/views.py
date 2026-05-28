@@ -5,6 +5,7 @@ from rest_framework import status, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.models import User
+from anthropic import Anthropic
 
 from .models import RewriteHistory
 from .serializers import UserRegistrationSerializer, RewriteHistorySerializer
