@@ -24,6 +24,7 @@ class RegisterView(APIView):
 
 class RewriteView(APIView):
     permission_classes = (permissions.AllowAny,)  # Make public
+    authentication_classes = ()  # Bypass JWTAuthentication entirely for this view
 
     def post(self, request):
         text = request.data.get('text', '').strip()
@@ -221,6 +222,7 @@ class RewriteView(APIView):
 
 class HistoryView(APIView):
     permission_classes = (permissions.AllowAny,)  # Make public
+    authentication_classes = ()  # Bypass JWTAuthentication entirely for this view
 
     def get(self, request):
         target_user = request.user
