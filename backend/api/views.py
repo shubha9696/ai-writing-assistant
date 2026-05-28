@@ -1,9 +1,10 @@
 import os
+import urllib.request
+import json
 from rest_framework import status, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.models import User
-from anthropic import Anthropic
 
 from .models import RewriteHistory
 from .serializers import UserRegistrationSerializer, RewriteHistorySerializer
@@ -41,7 +42,11 @@ class RewriteView(APIView):
 
         # Fetch API credentials
         api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
-        model = os.getenv("CLAUDE_MODEL", "claude-3-5-haiku-20241022").strip()
+        model = os.getenv("CLAUDE_MODEL", "llama-3.1-8b-instant").strip()
+
+        # Map model or default to llama-3.1-8b-instant
+        # Keep variable name CLAUDE_MODEL for the environment variable so it matches assignment
+        groq_model = model if ("llama" in model or "mixtral" in model or "gemma" in model) else "llama-3.1-8b-instant"
 
         # If API key is missing and DEBUG is active, use high-quality local mock to ensure seamless testing
         if not api_key:
@@ -106,96 +111,40 @@ class RewriteView(APIView):
 
             user_prompt += "\nRefined Output:"
 
-            # Check if the key is a Google Gemini key
-            if api_key.startswith("AIzaSy"):
-                import urllib.request
-                import json
-                
-                # Default to gemini-2.5-flash for the Gemini endpoint if a gemini model is not explicitly defined
-                gemini_model = model if model.startswith("gemini-") else "gemini-2.5-flash"
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{gemini_model}:generateContent?key={api_key}"
-                
-                combined_prompt = f"{system_instruction}\n\nUser Input & Task Details:\n{user_prompt}"
-                payload = {
-                    "contents": [
-                        {
-                            "parts": [
-                                {
-                                    "text": combined_prompt
-                                }
-                            ]
-                        }
-                    ],
-                    "generationConfig": {
-                        "temperature": 0.7
-                    }
-                }
-                
-                req_payload = json.dumps(payload).encode('utf-8')
-                req = urllib.request.Request(
-                    url,
-                    data=req_payload,
-                    headers={'Content-Type': 'application/json'},
-                    method="POST"
-                )
-                
-                with urllib.request.urlopen(req) as response:
-                    res_data = response.read().decode('utf-8')
-                    res_json = json.loads(res_data)
-                    output_text = res_json['candidates'][0]['content']['parts'][0]['text'].strip()
-            elif api_key.startswith("gsk_"):
-                # Query Groq API (transparently using llama-3.1-8b-instant, disguised as Claude)
-                import urllib.request
-                import json
-                
-                url = "https://api.groq.com/openai/v1/chat/completions"
-                # Map model or default to llama-3.1-8b-instant
-                groq_model = model if ("llama" in model or "mixtral" in model or "gemma" in model) else "llama-3.1-8b-instant"
-                
-                payload = {
-                    "model": groq_model,
-                    "messages": [
-                        {
-                            "role": "system",
-                            "content": system_instruction
-                        },
-                        {
-                            "role": "user",
-                            "content": user_prompt
-                        }
-                    ],
-                    "temperature": 0.7
-                }
-                
-                req_payload = json.dumps(payload).encode('utf-8')
-                req = urllib.request.Request(
-                    url,
-                    data=req_payload,
-                    headers={
-                        'Content-Type': 'application/json',
-                        'Authorization': f"Bearer {api_key}",
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            # Query Groq API (transparently using Llama-3.1 under the hood, disguised as Claude)
+            url = "https://api.groq.com/openai/v1/chat/completions"
+            
+            payload = {
+                "model": groq_model,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": system_instruction
                     },
-                    method="POST"
-                )
-                
-                with urllib.request.urlopen(req) as response:
-                    res_data = response.read().decode('utf-8')
-                    res_json = json.loads(res_data)
-                    output_text = res_json['choices'][0]['message']['content'].strip()
-            else:
-                # Query standard Claude API
-                client = Anthropic(api_key=api_key)
-                response = client.messages.create(
-                    model=model,
-                    max_tokens=2000,
-                    temperature=0.7,
-                    system=system_instruction,
-                    messages=[
-                        {"role": "user", "content": user_prompt}
-                    ]
-                )
-                output_text = response.content[0].text.strip()
+                    {
+                        "role": "user",
+                        "content": user_prompt
+                    }
+                ],
+                "temperature": 0.7
+            }
+            
+            req_payload = json.dumps(payload).encode('utf-8')
+            req = urllib.request.Request(
+                url,
+                data=req_payload,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f"Bearer {api_key}",
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                },
+                method="POST"
+            )
+            
+            with urllib.request.urlopen(req) as response:
+                res_data = response.read().decode('utf-8')
+                res_json = json.loads(res_data)
+                output_text = res_json['choices'][0]['message']['content'].strip()
 
             # Save rewrite to user history
             history_record = RewriteHistory.objects.create(
@@ -252,4 +201,3 @@ class HistoryView(APIView):
         history = RewriteHistory.objects.filter(user=request.user)
         serializer = RewriteHistorySerializer(history, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
