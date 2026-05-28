@@ -194,10 +194,10 @@ export default function Dashboard({ onLogout }) {
                   <button
                     type="button"
                     onClick={() => setMode('rewrite')}
-                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-200 flex items-center justify-center gap-1.5 ${
+                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
                       mode === 'rewrite'
-                        ? 'bg-brand-accent text-white shadow-sm'
-                        : 'text-brand-textSecondary hover:text-white'
+                        ? 'bg-violet-600 text-white shadow-md'
+                        : 'text-slate-400 hover:text-slate-200'
                     }`}
                   >
                     <ArrowRightLeft className="h-3.5 w-3.5" />
@@ -206,10 +206,10 @@ export default function Dashboard({ onLogout }) {
                   <button
                     type="button"
                     onClick={() => setMode('summarise')}
-                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-200 flex items-center justify-center gap-1.5 ${
+                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
                       mode === 'summarise'
-                        ? 'bg-brand-accent text-white shadow-sm'
-                        : 'text-brand-textSecondary hover:text-white'
+                        ? 'bg-violet-600 text-white shadow-md'
+                        : 'text-slate-400 hover:text-slate-200'
                     }`}
                   >
                     <BookOpen className="h-3.5 w-3.5" />
